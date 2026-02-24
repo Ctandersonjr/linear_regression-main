@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
 
 import requests
+
+from balldontlie import BalldontlieAPI
 
 
 class NBAApiError(RuntimeError):
@@ -24,20 +25,30 @@ class Player:
 
 
 class BallDontLieClient:
-    """Small HTTP client for the public balldontlie API."""
+    """Small HTTP client for the balldontlie API."""
 
     def __init__(self, base_url: str | None = None, timeout: int = 15) -> None:
-        self.base_url = (base_url or os.getenv("BALLDONTLIE_BASE_URL") or "https://api.balldontlie.io/v1").rstrip("/")
+        self.base_url = ("https://www.balldontlie.io/api/v1").rstrip("/")
+
         self.timeout = timeout
         self.session = requests.Session()
 
-        api_key = os.getenv("BALLDONTLIE_API_KEY")
+        # Correct env var name:
+        api = BalldontlieAPI(api_key="YOUR_API_KEY")
+        players = api.nba.players.list(per_page=25)
         if api_key:
+            ["Authorization"] = f"Bearer {api_key}"
             self.session.headers["Authorization"] = api_key
 
     def _get(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
+        url = f"{self.base_url}{path}"
         try:
-            response = self.session.get(f"{self.base_url}{path}", params=params, timeout=self.timeout)
+            response = self.session.get(url, params=params, timeout=self.timeout)
+            if response.status_code == 401:
+                raise NBAApiError(
+                    "401 Unauthorized: API key missing/invalid or header format wrong. "
+                    "Check BALLDONTLIE_API_KEY and Authorization header."
+                )
             response.raise_for_status()
             return response.json()
         except requests.RequestException as exc:
@@ -49,6 +60,7 @@ class BallDontLieClient:
 
         while len(players) < max_players:
             payload = self._get("/players", {"per_page": 100, "cursor": cursor})
+
             for raw_player in payload.get("data", []):
                 players.append(
                     Player(
@@ -75,9 +87,6 @@ class BallDontLieClient:
     def season_averages(self, season: int, player_ids: tuple[int, ...]) -> list[dict[str, Any]]:
         payload = self._get(
             "/season_averages",
-            {
-                "season": season,
-                "player_ids[]": list(player_ids),
-            },
+            {"season": season, "player_ids[]": list(player_ids)},
         )
         return payload.get("data", [])

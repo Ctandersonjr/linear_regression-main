@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression #type:ignore
+from sklearn.metrics import mean_squared_error, r2_score #type:ignore
+from sklearn.model_selection import train_test_split #type:ignore
 
 from app.nba_client import BallDontLieClient, NBAApiError, Player
 
@@ -34,24 +34,24 @@ def _as_minutes(value: str | float | int | None) -> float:
     return float(value)
 
 
-def _to_frame(averages: list[dict], players_by_id: dict[int, Player], season: int) -> pd.DataFrame:
+def _to_frame(averages: list[dict], players_by_id: dict[int, Player], season: int) -> pd.DataFrame: # pyright: ignore[reportUnknownParameterType]
     rows = []
-    for item in averages:
-        player_id = item["player_id"]
+    for item in averages: # pyright: ignore[reportUnknownVariableType]
+        player_id = item["player_id"] # pyright: ignore[reportUnknownVariableType]
         if player_id not in players_by_id:
             continue
-        rows.append(
+        rows.append( # pyright: ignore[reportUnknownMemberType]
             {
                 "player_id": player_id,
                 "player": players_by_id[player_id].full_name,
                 "season": season,
-                "pts": float(item.get("pts", 0.0)),
-                "ast": float(item.get("ast", 0.0)),
-                "reb": float(item.get("reb", 0.0)),
-                "min": _as_minutes(item.get("min")),
+                "pts": float(item.get("pts", 0.0)), # type: ignore
+                "ast": float(item.get("ast", 0.0)), # type: ignore
+                "reb": float(item.get("reb", 0.0)), # type: ignore
+                "min": _as_minutes(item.get("min")), # type: ignore
             }
         )
-    return pd.DataFrame(rows)
+    return pd.DataFrame(rows) # type: ignore
 
 
 def build_training_data(client: BallDontLieClient, season: int, player_count: int) -> pd.DataFrame:
@@ -79,11 +79,11 @@ def train_and_rank(df: pd.DataFrame, season: int, top_n: int = 10) -> ModelResul
     x = df[FEATURES]
     y = df["next_pts"]
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42) # pyright: ignore[reportUnknownVariableType]
 
     model = LinearRegression()
-    model.fit(x_train, y_train)
-    pred_test = model.predict(x_test)
+    model.fit(x_train, y_train) # pyright: ignore[reportUnknownArgumentType]
+    pred_test = model.predict(x_test) # pyright: ignore[reportUnknownArgumentType]
 
     full_pred = model.predict(x)
     scored = df.assign(predicted_next_pts=full_pred)
@@ -97,8 +97,8 @@ def train_and_rank(df: pd.DataFrame, season: int, top_n: int = 10) -> ModelResul
 
     return ModelResult(
         season=season,
-        r2=float(r2_score(y_test, pred_test)),
-        mse=float(mean_squared_error(y_test, pred_test)),
+        r2=float(r2_score(y_test, pred_test)), # pyright: ignore[reportUnknownArgumentType]
+        mse=float(mean_squared_error(y_test, pred_test)), # pyright: ignore[reportUnknownArgumentType]
         samples=int(len(df)),
-        top_improvers=top_improvers,
+        top_improvers=top_improvers, # pyright: ignore[reportArgumentType]
     )
