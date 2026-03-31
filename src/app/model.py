@@ -3,12 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import pandas as pd
-from sklearn.linear_model import LinearRegression #type:ignore
-from sklearn.metrics import mean_squared_error, r2_score #type:ignore
-from sklearn.model_selection import train_test_split #type:ignore
+from sklearn.linear_model import LinearRegression  #type:ignore
+from sklearn.metrics import mean_squared_error, r2_score  #type:ignore
+from sklearn.model_selection import train_test_split  #type:ignore
 
 from app.nba_client import BallDontLieClient, NBAApiError, Player
-
 
 FEATURES = ["pts", "ast", "reb", "min"]
 
@@ -23,7 +22,7 @@ class ModelResult:
 
 
 
-def _as_minutes(value: str | float | int | None) -> float:
+def _as_minutes(value: str | float | None) -> float:
     if value is None:
         return 0.0
     if isinstance(value, (float, int)):
@@ -101,6 +100,6 @@ def train_and_rank(df: pd.DataFrame, season: int, top_n: int = 10) -> ModelResul
         season=season,
         r2=float(r2_score(y_test, pred_test)), # pyright: ignore[reportUnknownArgumentType]
         mse=float(mean_squared_error(y_test, pred_test)), # pyright: ignore[reportUnknownArgumentType]
-        samples=int(len(df)),
+        samples=len(df),
         top_improvers=top_improvers, # pyright: ignore[reportArgumentType]
     )
