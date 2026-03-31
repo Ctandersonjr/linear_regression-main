@@ -1,3 +1,18 @@
+Metadata-Version: 2.4
+Name: linear-regression-api
+Version: 0.1.0
+Summary: Production-ready FastAPI service to predict NBA player scoring improvement
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi==0.115.6
+Requires-Dist: uvicorn==0.32.1
+Requires-Dist: pandas==2.2.3
+Requires-Dist: scikit-learn==1.5.2
+Requires-Dist: requests==2.32.3
+Provides-Extra: dev
+Requires-Dist: pytest==8.3.4; extra == "dev"
+Requires-Dist: httpx==0.28.1; extra == "dev"
+
 # linear_regression
 
 Production-ready API service that predicts which NBA players are likely to improve their points-per-game next season.

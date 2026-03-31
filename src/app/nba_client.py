@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
+import os
 from typing import Any
 
 import requests
-
-from balldontlie import BalldontlieAPI
 
 
 class NBAApiError(RuntimeError):
@@ -28,16 +27,15 @@ class BallDontLieClient:
     """Small HTTP client for the balldontlie API."""
 
     def __init__(self, base_url: str | None = None, timeout: int = 15) -> None:
-        self.base_url = ("https://www.balldontlie.io/api/v1").rstrip("/")
-
+        self.base_url = (
+            base_url
+            or os.getenv("BALLDONTLIE_BASE_URL")
+            or "https://api.balldontlie.io/v1"
+        ).rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
-
-        # Correct env var name:
-        api = BalldontlieAPI(api_key="YOUR_API_KEY")
-        players = api.nba.players.list(per_page=25)
+        api_key = os.getenv("BALLDONTLIE_API_KEY")
         if api_key:
-            ["Authorization"] = f"Bearer {api_key}"
             self.session.headers["Authorization"] = api_key
 
     def _get(self, path: str, params: dict[str, Any]) -> dict[str, Any]:

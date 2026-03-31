@@ -15,20 +15,29 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+def _predict_improvement(
+    season: int,
+    player_count: int,
+    top_n: int,
+) -> ImprovementResponse:
+    dataset = build_training_data(client, season=season, player_count=player_count)
+    result = train_and_rank(dataset, season=season, top_n=top_n)
+    return ImprovementResponse(
+        season=result.season,
+        samples=result.samples,
+        metrics=Metrics(r2=result.r2, mse=result.mse),
+        top_improvers=[TopImprover(**item) for item in result.top_improvers],  # type: ignore[arg-type]
+    )
+
+
 @app.get("/", response_model=ImprovementResponse)
+@app.get("/predict-improvement", response_model=ImprovementResponse)
 def predict_improvement(
     season: int = Query(2022, ge=1980, le=2100),
     player_count: int = Query(200, ge=50, le=400),
     top_n: int = Query(10, ge=1, le=25),
 ) -> ImprovementResponse:
     try:
-        dataset = build_training_data(client, season=season, player_count=player_count)
-        result = train_and_rank(dataset, season=season, top_n=top_n)
-        return ImprovementResponse(
-            season=result.season,
-            samples=result.samples,
-            metrics=Metrics(r2=result.r2, mse=result.mse),
-            top_improvers=[TopImprover(**item) for item in result.top_improvers], # type: ignore
-        )
+        return _predict_improvement(season=season, player_count=player_count, top_n=top_n)
     except (NBAApiError, ValueError) as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc

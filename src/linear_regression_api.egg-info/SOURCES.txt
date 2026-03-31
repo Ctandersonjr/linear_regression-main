@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/app/__init__.py
+src/app/main.py
+src/app/model.py
+src/app/nba_client.py
+src/app/schemas.py
+src/linear_regression_api.egg-info/PKG-INFO
+src/linear_regression_api.egg-info/SOURCES.txt
+src/linear_regression_api.egg-info/dependency_links.txt
+src/linear_regression_api.egg-info/requires.txt
+src/linear_regression_api.egg-info/top_level.txt
+tests/test_model.py

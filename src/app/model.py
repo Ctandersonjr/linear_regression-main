@@ -86,8 +86,10 @@ def train_and_rank(df: pd.DataFrame, season: int, top_n: int = 10) -> ModelResul
     pred_test = model.predict(x_test) # pyright: ignore[reportUnknownArgumentType]
 
     full_pred = model.predict(x)
-    scored = df.assign(predicted_next_pts=full_pred)
-    scored["predicted_improvement"] = scored["predicted_next_pts"] - scored["pts"]
+    scored = df.assign(
+        predicted_next_pts=full_pred,
+        predicted_improvement=full_pred - df["pts"],
+    )
 
     top_improvers = (
         scored.sort_values("predicted_improvement", ascending=False)
